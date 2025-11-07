@@ -27,7 +27,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f package.json ] && npx -y json -f package.json scripts.docs\:gen >/dev/null 2>&1; then
+          if [ -f package.json ] && npx -y json -f package.json scripts."docs:gen" >/dev/null 2>&1; then
             pnpm install --frozen-lockfile || true
             pnpm docs:gen
             if ! git diff --quiet; then
