@@ -1,0 +1,42 @@
+name: Docs Auto Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  generate-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: |
+          corepack enable || true
+          corepack prepare pnpm@latest --activate || true
+
+      - name: Run docs generators if available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package.json ] && npx -y json -f package.json scripts.docs\:gen >/dev/null 2>&1; then
+            pnpm install --frozen-lockfile || true
+            pnpm docs:gen
+            if ! git diff --quiet; then
+              echo "Generated docs differ; please commit updated docs." >&2
+              git status --porcelain
+              exit 1
+            fi
+          else
+            echo "No docs:gen script found. Skipping auto-generation."
+          fi
+
+

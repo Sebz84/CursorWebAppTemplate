@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  web:
+    image: node:20
+    working_dir: /work
+    volumes:
+      - ./:/work:cached
+    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm dev:frontend"
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    tty: true
+
+  storybook:
+    image: node:20
+    working_dir: /work
+    volumes:
+      - ./:/work:cached
+    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm storybook"
+    ports:
+      - "6006:6006"
+    environment:
+      - NODE_ENV=development
+    tty: true
+
+  mobile-web:
+    image: node:20
+    working_dir: /work
+    volumes:
+      - ./:/work:cached
+    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm dev:frontend -- --web"
+    ports:
+      - "19006:19006"
+    environment:
+      - NODE_ENV=development
+    tty: true
+
+
