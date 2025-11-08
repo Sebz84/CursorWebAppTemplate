@@ -1,0 +1,11 @@
+{
+  "name": "@template/e2e-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:e2e": "echo \"Mobile E2E suite is parked until the Expo client returns.\""
+  },
+  "devDependencies": {}
+}
+

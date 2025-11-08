@@ -1,0 +1,51 @@
+{
+  "name": "cursor-web-app-template",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@8.15.4",
+  "scripts": {
+    "dev:web": "turbo run dev --filter=web",
+    "dev:backend": "turbo run dev --filter=backend",
+    "dev:all": "turbo run dev --parallel",
+    "db:generate": "turbo run db:generate",
+    "db:migrate": "turbo run db:migrate",
+    "db:seed": "turbo run db:seed",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "build": "turbo run build",
+    "test:unit": "turbo run test:unit",
+    "test:e2e:web": "turbo run test:e2e:web",
+    "test:e2e:mobile": "turbo run test:e2e:mobile",
+    "test:changed": "turbo run test --filter=...[HEAD^1]",
+    "storybook": "turbo run storybook",
+    "preview": "turbo run preview --filter=web",
+    "billing:listen:stripe": "turbo run billing:listen:stripe",
+    "billing:listen:xendit": "turbo run billing:listen:xendit",
+    "docs:gen": "turbo run docs:gen",
+    "docs:check": "turbo run docs:check"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-turbo": "^2.6.0",
+    "prettier": "^3.3.3",
+    "patch-package": "^8.0.1",
+    "turbo": "^2.6.0",
+    "typescript": "^5.9.3",
+    "vitest": "^0.34.6"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "rollup@*": {
+        "dependencies": {
+          "patch-package": "^8.0.1"
+        }
+      }
+    }
+  }
+}
+

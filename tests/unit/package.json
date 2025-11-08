@@ -1,0 +1,14 @@
+{
+  "name": "@template/tests-unit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:unit": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^0.34.6",
+    "typescript": "^5.9.3"
+  }
+}
+

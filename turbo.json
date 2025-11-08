@@ -1,0 +1,54 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV", "LOG_LEVEL", "CLERK_SECRET_KEY", "NEXT_PUBLIC_API_URL", "PORT", "SENTRY_DSN"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**", "storybook-static/**"]
+    },
+    "dev": {
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": ["coverage/**"]
+    },
+    "test:unit": {
+      "dependsOn": ["^test:unit"],
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e:web": {
+      "dependsOn": ["^test:e2e:web"],
+      "outputs": []
+    },
+    "test:e2e:mobile": {
+      "dependsOn": ["^test:e2e:mobile"],
+      "outputs": []
+    },
+    "docs:gen": {
+      "dependsOn": ["^docs:gen"],
+      "outputs": [
+        "docs/api/**",
+        "docs/architecture/**",
+        "docs/features/**",
+        "docs/testing/**"
+      ]
+    },
+    "docs:check": {
+      "dependsOn": ["docs:gen"]
+    },
+    "storybook": {
+      "dependsOn": ["^storybook"],
+      "cache": false
+    }
+  }
+}
+

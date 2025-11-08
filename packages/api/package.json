@@ -1,0 +1,20 @@
+{
+  "name": "@template/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@template/auth": "workspace:*",
+    "@template/types": "workspace:*",
+    "@trpc/server": "^10.45.0",
+    "zod": "^3.22.4"
+  }
+}
+

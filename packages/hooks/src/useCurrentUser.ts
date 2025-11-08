@@ -1,0 +1,8 @@
+import { trpc } from './trpc';
+
+export const useCurrentUser = () =>
+  trpc.user.me.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false
+  });
+

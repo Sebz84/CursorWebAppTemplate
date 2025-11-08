@@ -12,10 +12,11 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 ### Repository Architecture (Monorepo)
 - Turborepo + pnpm workspaces; TypeScript project references.
 - Top-level layout overview:
-  - `apps/frontend` (Expo + expo-router; web + native clients)
+  - `apps/web` (Next.js 14 App Router PWA)
   - `apps/backend` (Fastify/Hono + tRPC server, jobs, webhooks)
-  - `packages/*` (shared logic: API, DB, UI, auth, billing, etc.)
-  - `tests/*` (unit, integration, E2E web, E2E mobile suites)
+  - `packages/ui` (interface exports), `packages/ui-web` (Tailwind + shadcn implementation), `packages/ui-mobile` (Expo/Tamagui placeholder)
+  - Other `packages/*` (API, DB, auth, billing, config, hooks, etc.)
+  - `tests/*` (unit, integration, Playwright web E2E, parked mobile E2E)
   - `docs/*` (extended documentation site/content)
   - `tooling/*` (automation scripts, generators)
   - Root configs: `turbo.json`, `pnpm-workspace.yaml`, `.env.example`, `.github/workflows/*`, etc.
@@ -25,16 +26,15 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 ```
 .
 ├── apps/
-│   ├── frontend/                    # Expo app (web + native)
-│   │   ├── app/                     # expo-router routes
-│   │   │   ├── (public)/            # Landing / marketing pages
-│   │   │   ├── (auth)/              # Login, register, reset
-│   │   │   └── (dashboard)/         # Authenticated routes & nested layouts
-│   │   ├── components/              # App-scoped components
-│   │   ├── features/                # Domain feature slices
-│   │   ├── hooks/                   # App-specific hooks
-│   │   ├── assets/                  # Fonts, images, icons
-│   │   ├── app.config.ts            # Expo config (per env)
+│   ├── web/                        # Next.js PWA
+│   │   ├── app/                    # App Router routes
+│   │   │   ├── (public)/           # Landing, pricing
+│   │   │   ├── (auth)/             # Clerk-hosted auth routes
+│   │   │   └── (dashboard)/dashboard/  # Protected dashboard + account
+│   │   ├── providers/              # Client providers (Clerk, tRPC, React Query)
+│   │   ├── middleware.ts           # Clerk route protection
+│   │   ├── public/                 # PWA manifest, icons, service worker output
+│   │   ├── tailwind.config.ts      # Tailwind configuration
 │   │   └── package.json
 │   │
 │   └── backend/                     # API server (Hono/Fastify + tRPC)
@@ -58,7 +58,9 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 │   ├── communications/              # Emails (Resend), push notifications
 │   ├── config/                      # Env schemas, feature flags, constants
 │   ├── types/                       # Shared TS types & DTOs
-│   ├── ui/                          # Tamagui components, themes, Storybook (every component ships with a story)
+│   ├── ui/                          # UI interface re-exporting the active implementation
+│   ├── ui-web/                      # Tailwind + shadcn components, tokens, Storybook stories
+│   ├── ui-mobile/                   # Tamagui components preserved for future Expo client
 │   ├── hooks/                       # Cross-app hooks (auth, plan, feature)
 │   ├── observability/               # Logging, Sentry, analytics helpers
 │   └── testing-utils/               # Testing factories, mocks, fixtures
@@ -102,8 +104,8 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 - Database: `prisma/schema.prisma`
 - API: `packages/api/src/router/**` (tRPC + Zod)
 - Types: `packages/types/**`
-- Design system: `packages/ui/tamagui.config.ts` (+ tokens)
-- Routing: `apps/frontend/app/**`
+- Design system: `packages/ui-web/src/**` (Tailwind/shadcn components, tokens) and `packages/ui-mobile/src/theme/tamagui.config.ts`
+- Routing: `apps/web/app/**`
 - Environment & config: `packages/config/env.ts`
 - Observability: `packages/observability/**`
 
@@ -112,8 +114,8 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 | Layer | Technology | Rationale |
 |-------|------------|-----------|
 | Language & Tooling | TypeScript (strict mode), Turborepo, pnpm, TypeScript project references | End-to-end type safety, fast builds with remote caching, single package manager, minimal boilerplate for AI agents. |
-| Frontend App | Expo (React Native) + expo-router | Single codebase for web + native, file-based routing, ecosystem aligned with React Native tooling, easy EAS deployment. |
-| UI System | Tamagui + Storybook | Cross-platform components compiled for native & web, typed variants, theme tokens, Storybook for isolated UI previews. |
+| Frontend App | Next.js 14 (App Router) PWA | File-based routing, SSR/SSG, PWA installability, first-class web tooling, fast MVP iterations. |
+| UI System | Tailwind CSS + Radix UI/shadcn + Storybook | Accessible component primitives, utility styling, Storybook coverage; shared tokens enable future Expo implementation. |
 | Backend App | Node.js 20 + Hono/Fastify + tRPC | Lightweight HTTP server, high-performance routing, type-safe RPC shared with frontend, simple deployment footprint. |
 | Data Layer | Prisma ORM + PostgreSQL (Supabase/Neon managed) | Declarative schema (`schema.prisma`), migrations, generated types, managed serverless Postgres for zero-ops. |
 | Authentication | Clerk | Managed auth with MFA/social login, prebuilt components, strong TypeScript SDK, reduces security surface. |
@@ -154,9 +156,8 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 
 ### Environment and Configuration
 - Validation:
-  - Frontend: `@t3-oss/env-nextjs` (web-specific) as needed
-  - Backend/shared: `@t3-oss/env-core`
-- `.env.example` includes all keys with comments and sensible defaults.
+- All env validation is handled by `packages/config` (`@t3-oss/env-core`).
+- `.env.example` includes all keys with comments and sensible defaults (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `NEXT_PUBLIC_API_URL`, etc.).
 - Separate environments: local, preview, production; region-aware config.
 
 ### Testing Strategy
@@ -187,7 +188,7 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 
 ### Developer Workflow (Scripts as the “OS”)
 - Common scripts (wired through Turbo):
-  - `dev:frontend`, `dev:backend`, `dev:all`
+- `dev:web`, `dev:backend`, `dev:all`
   - `db:generate`, `db:migrate`, `db:seed`
   - `typecheck`, `lint`, `format`, `build`
   - `test:unit`, `test:e2e:web`, `test:e2e:mobile`, `test:changed`
@@ -198,15 +199,15 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 
 ### UI Preview and Isolated Execution
 - UI previews:
-  - Storybook serves all reusable UI components (web + RN via Tamagui) for fast iteration.
-  - Expo Web (`mobile-web` Docker service) renders mobile screens in the browser for quick checks.
-  - When Next.js is added, the `web` Docker service previews full web pages and server components.
+  - Storybook (`packages/ui-web/stories`) documents reusable web components for fast iteration.
+  - Next.js dev server (`web` Docker service) previews the PWA (SSR/ISR/RSC) locally.
+  - The `mobile-web` Docker service is parked until the Expo client returns; keep the stub for parity.
 - Isolation & reproducibility:
   - Dev Container (`.devcontainer/devcontainer.json`) provides a consistent Node toolchain in Docker.
   - Docker Compose (`docker-compose.yml`) spins up preview services without installing Node locally:
-    - `web` → http://localhost:3000 (future Next.js or Expo web)
+    - `web` → http://localhost:3000
     - `storybook` → http://localhost:6006
-    - `mobile-web` → http://localhost:19006
+    - `mobile-web` → http://localhost:19006 (parked)
   - All commands run inside containers; results are reproducible across machines.
 
 ### Security Baselines
@@ -217,14 +218,14 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 - Dependency scanning in CI; lockfile integrity.
 
 ### Performance Defaults
-- Optimize Expo screens with memoization and Suspense where applicable.
+- Use React Server Components/Server Actions where they simplify data fetching.
 - Connection pooling (Neon/Supabase); Prisma Accelerate/pgBouncer if needed.
 - Edge caching for public data when using serverless/edge deployments.
-- Image optimization via Expo asset pipeline.
+- Image optimization via Next.js built-in image component.
 
 ### Internationalization and Localization
 - Currency localization and formatting per provider/country.
-- i18n library for strings; shared copy where possible in `packages/ui`.
+- PWA locale routing handled via Next.js App Router. Shared strings/config reside in `packages/config` and `packages/ui-web` for Tailwind tokens.
 
 ### Feature Scaffolding (AI‑Friendly)
 - `pnpm gen:resource` (planned) generates:
@@ -238,8 +239,8 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 - Included end-to-end slice demonstrating:
   - Model, migration, seed
   - tRPC endpoints + Zod validation + auth
-  - Expo screen + shared component
-  - Vitest + Playwright + Maestro tests
+  - Next.js page + shared `@template/ui` component
+  - Vitest + Playwright tests (mobile suite parked but documented)
   - Storybook story
   - Docs section and ADR if needed
 
@@ -257,57 +258,55 @@ This document is the canonical map of the system: boundaries, sources of truth, 
 1) Core User & Authentication System
 
 - User Registration
-  - Dedicated registration page/screen exists in `apps/frontend/app/(auth)/register`.
-  - Signup form is configurable via `packages/auth/config/signup-fields.ts` with per-field `enabled`/`required` flags.
-  - Email/Password is the default registration method (Clerk-managed); passwords are securely hashed server-side by the provider.
+  - Public sign-up lives in `apps/web/app/(auth)/sign-up/[[...signUp]]/page.tsx` leveraging Clerk-hosted components.
+  - Signup fields remain configurable via `packages/auth/src/signup-fields.ts` with per-field `enabled`/`required` flags.
+  - Email/password is the default method; Clerk handles secure hashing/storage.
 - User Login
-  - Dedicated login page/screen exists in `apps/frontend/app/(auth)/login`.
-  - Persistent sessions ("Remember Me") are enabled via Clerk session configuration; users remain signed in across restarts.
+  - Login flow is rendered at `apps/web/app/(auth)/sign-in/[[...signIn]]/page.tsx`.
+  - PWA sessions persist via Clerk cookies/tokens across reloads.
 - User Logout
-  - Accessible logout is present in the user menu (web header/mobile account menu) and wired to Clerk sign-out.
+  - Dashboard layout (`apps/web/app/(dashboard)/dashboard/layout.tsx`) shows a Logout action wired to `signOut`.
 - Session Management
-  - Protected routes and procedures enforced via `packages/auth/withUser`, `requireRole`, and plan guard `requirePlan`.
-  - Current user is accessible on server via `getCurrentUser()` and on client via provided hooks.
+  - Next.js middleware (`apps/web/middleware.ts`) + backend guards (`packages/auth`) restrict protected pages and APIs.
+  - `getCurrentUser()` (server) and `useCurrentUser()` (client) expose the authenticated user.
 - Role-Based Access Control (RBAC)
-  - `User.role` enum includes `USER` and `ADMIN` in the Prisma schema.
-  - Backend guards restrict role-only actions (e.g., admin dashboard procedures).
+  - `User.role` enum (Prisma) continues to support `USER` and `ADMIN`.
+  - `requireRole` guard remains the backend enforcement point for admin-only actions.
 
 2) Subscription & Monetization System
 
 - Subscription Plans
-  - Plans defined centrally in `packages/billing/plans.ts` (name, price(s), granted features/limits).
-  - Default `Free` plan is assigned on signup.
+  - Plans remain centralized in `packages/billing/plans.ts` (name, price, granted features/limits).
+  - New users default to the `Free` plan on registration.
 - Plan Selection & Checkout
-  - Pricing page at `apps/frontend/app/(public)/pricing` shows available plans and triggers checkout.
-  - Provider abstraction in `packages/billing` (Stripe default; Xendit/XenPlatform supported, pluggable architecture).
-  - Config flag `SIGNUP_REQUIRE_PLAN` controls whether plan selection is required at signup.
+  - `/pricing` (`apps/web/app/(public)/pricing/page.tsx`) lists plans and links to hosted checkout (Stripe/Xendit).
+  - Provider abstraction in `packages/billing` supports Stripe by default with Xendit/XenPlatform adapters.
+  - `SIGNUP_REQUIRE_PLAN` toggles whether users must pick a plan during sign-up.
 - Subscription Management
-  - Account/Billing page at `apps/frontend/app/(dashboard)/account/billing` (hidden if only Free plan exists) exposes manage/upgrade/downgrade/cancel.
-  - Webhooks from the billing provider update subscription status; events normalized under `packages/billing/webhooks/*`.
+  - `/dashboard/account/billing` (`apps/web/app/(dashboard)/dashboard/account/billing/page.tsx`) surfaces plan status and opens the billing portal.
+  - Billing webhooks (Stripe/Xendit) update subscription state, normalized in `packages/billing/webhooks/*`.
 
 3) Feature Flagging & Permissions
 
 - Permission-Gated Features
   - Permissions and limits defined in `packages/billing/plans.ts` and linked to each plan (e.g., `feature:enable-advanced-analytics`, `limit:max-projects:5`).
-  - Backend enforcement via `requireFeature('feature-key')` and limit checks in tRPC middleware.
-  - Frontend gating with a `Feature` component/HOC and helpers to hide/disable UI for ineligible users.
+  - Backend enforcement via `requireFeature('feature-key')` in `packages/api/src/router/dashboard.ts` and limit checks in shared utilities.
+  - Frontend gating with the `Feature` component in `packages/ui-web/src/components/Feature.tsx` (surfaced via `@template/ui`) plus React Query hooks from `packages/hooks` to toggle UI for ineligible users.
 
 4) User Interface & Experience (UI/UX)
 
 - Core Layout
-  - Authenticated layout with configurable navigation (top/bottom) in `packages/ui/layouts/AppLayout`.
-  - User account menu includes: profile settings, account/billing, logout.
+  - Dashboard shell lives in `packages/ui-web/src/components/AppLayout.tsx` (exposed via `@template/ui`).
+  - Header exposes profile/logout actions; extend with navigation when modules expand.
 - Internationalization (i18n)
-  - Web and mobile are pre-configured with `en` and `de`.
-  - Locale-aware routing via expo-router segments; simple language switcher.
-  - Translations live in `packages/ui/i18n/*`; documented add-language workflow.
+  - Web is pre-configured with `en` and `de`; translations live under `packages/ui-web` (extend via Tailwind tokens) and `packages/config` for locales.
 - Progressive Web App (PWA)
-  - Expo Web config includes service worker and manifest for installable PWA.
+  - Manifest (`apps/web/public/manifest.json`), security headers, and service worker (`apps/web/public/sw.js`) follow the official Next.js PWA guide. Push opt-in is surfaced from the dashboard card.
 - Push Notifications
-  - Opt-in flow provided; subscriptions stored in DB; backend endpoint supports user-targeted notifications.
+  - Web push subscriptions are captured via server actions (`apps/web/app/actions.ts`). A demo in-memory store keeps the latest subscription and `web-push` sends test payloads; wire to a database for production persistence.
 - Storybook Coverage
-  - Every exported UI component/screen must ship with a colocated Storybook story.
-  - Maintain an overarching “Design System” story (or docs page) demonstrating global tokens, typography, and layout primitives.
+  - Every exported UI component/screen ships with a colocated Storybook story (`packages/ui-web/stories/*`).
+  - Maintain a design system story demonstrating tokens/typography/layout primitives (see `packages/ui-web/stories/AppLayout.stories.tsx`).
 
 5) Production-Readiness & Developer Experience
 
@@ -320,8 +319,9 @@ This document is the canonical map of the system: boundaries, sources of truth, 
   - Welcome and password reset email templates live in `packages/communications/emails/*`.
   - Mailing helpers respect environment configuration and provide a test sandbox.
 - Testing
-  - Unit/integration via Vitest; E2E via Playwright (web) and Maestro (mobile); fixtures for billing/auth and webhook payloads.
+  - Unit/integration via Vitest; Playwright covers web E2E. Maestro scripts are parked (`tests/e2e-mobile`) until the Expo client returns.
 - Documentation
   - `README.md` describes architecture, configuration of all features, and run/deploy procedures. Docs-as-code policy is enforced in CI.
+  - `/docs/architecture/cross-platform.md` captures the plan for reintroducing the Expo/mobile client.
 
 

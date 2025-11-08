@@ -1,0 +1,67 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "allowJs": false,
+    "incremental": true,
+    "jsx": "preserve",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "paths": {
+      "@template/api": [
+        "../../packages/api/src"
+      ],
+      "@template/auth": [
+        "../../packages/auth/src"
+      ],
+      "@template/billing": [
+        "../../packages/billing/src"
+      ],
+      "@template/config": [
+        "../../packages/config/src"
+      ],
+      "@template/hooks": [
+        "../../packages/hooks/src"
+      ],
+      "@template/types": [
+        "../../packages/types/src"
+      ],
+      "@template/ui": [
+        "../../packages/ui/src"
+      ],
+      "@template/ui-web": [
+        "../../packages/ui-web/src"
+      ],
+      "@template/observability": [
+        "../../packages/observability/src"
+      ]
+    },
+    "types": [
+      "@types/node",
+      "@types/react",
+      "@types/react-dom"
+    ],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

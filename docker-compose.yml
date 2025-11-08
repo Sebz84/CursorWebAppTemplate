@@ -6,7 +6,7 @@ services:
     working_dir: /work
     volumes:
       - ./:/work:cached
-    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm dev:frontend"
+    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm dev:web"
     ports:
       - "3000:3000"
     environment:
@@ -30,7 +30,7 @@ services:
     working_dir: /work
     volumes:
       - ./:/work:cached
-    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm dev:frontend -- --web"
+    command: sh -lc "corepack enable && pnpm install --frozen-lockfile || true && pnpm dev:web"
     ports:
       - "19006:19006"
     environment:

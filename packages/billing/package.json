@@ -1,0 +1,19 @@
+{
+  "name": "@template/billing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@template/config": "workspace:*",
+    "@template/types": "workspace:*",
+    "zod": "^3.22.4"
+  }
+}
+

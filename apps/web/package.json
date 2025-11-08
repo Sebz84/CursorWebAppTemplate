@@ -1,0 +1,44 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run --dir src --passWithNoTests",
+    "preview": "next start"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.34.5",
+    "@tanstack/react-query": "^4.42.0",
+    "@template/api": "workspace:*",
+    "@template/auth": "workspace:*",
+    "@template/billing": "workspace:*",
+    "@template/config": "workspace:*",
+    "@template/hooks": "workspace:*",
+    "@template/ui": "workspace:*",
+    "@template/types": "workspace:*",
+    "clsx": "^2.1.0",
+    "next": "^16.0.1",
+    "next-pwa": "^5.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.1",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.9.3"
+  }
+}
+
+

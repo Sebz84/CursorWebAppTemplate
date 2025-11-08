@@ -13,6 +13,7 @@ This log captures architectural decisions for traceability. Keep entries concise
 - ADR-008: Observability stack (Sentry, pino, PostHog)
 - ADR-009: Docs-as-code enforcement
 - ADR-010: Testing stack (Vitest, Playwright, Maestro)
+- ADR-011: Next.js PWA frontend with Tailwind + shadcn/ui
 
 ---
 
@@ -24,7 +25,7 @@ This log captures architectural decisions for traceability. Keep entries concise
 ### ADR-002: Expo (frontend) + Tamagui UI system
 **Decision**: Build the primary client as an Expo app using expo-router, with Tamagui as the shared UI system.
 **Rationale**: Single codebase for web + native, cross-platform components, strong developer velocity.
-**Consequences**: Web SSR features are deferred; optionally introduce Next.js later if SSR/SEO is required.
+**Consequences**: Web SSR features are deferred; optionally introduce Next.js later if SSR/SEO is required. (Superseded by ADR-011.)
 
 ### ADR-003: Standalone backend with Hono/Fastify + tRPC
 **Decision**: Provide a dedicated backend app using Hono or Fastify with tRPC adapters.
@@ -65,6 +66,11 @@ This log captures architectural decisions for traceability. Keep entries concise
 **Decision**: Use Vitest for unit/integration tests, Playwright for web E2E, Maestro for mobile E2E.
 **Rationale**: Modern tooling with TypeScript support, good automation story, works well with Expo + tRPC architecture.
 **Consequences**: Requires fixture management and environment seeding; integrate into CI pipelines.
+
+### ADR-011: Next.js PWA frontend with Tailwind + shadcn/ui
+**Decision**: Replace the Expo frontend with a Next.js 14 App Router PWA styled via Tailwind CSS and shadcn/ui (Radix primitives).
+**Rationale**: PWAs ship faster for MVPs, simplify debugging (no simulators), preserve type-safe contracts, and keep Cursor-effective docs. Tailwind + shadcn speeds up UI work and aligns with the existing Tailwind project.
+**Consequences**: Native UI lives in `@template/ui-mobile` until Expo returns, mobile E2E tests are parked, and PWA manifest/service worker maintenance becomes part of the workflow.
 
 ---
 

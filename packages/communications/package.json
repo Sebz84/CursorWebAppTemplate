@@ -1,0 +1,18 @@
+{
+  "name": "@template/communications",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "emails/index.ts",
+  "types": "emails/index.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint emails --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "resend": "^6.4.2",
+    "@template/types": "workspace:*"
+  }
+}
+
